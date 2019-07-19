@@ -67,4 +67,7 @@ for i in db:
             logging.info(f'Creating results directory {results_dir}')
             os.makedirs(results_dir)
             
-    run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes)
+    if 'ops' in i:
+        run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes, i['ops'])
+    else:
+        run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes)

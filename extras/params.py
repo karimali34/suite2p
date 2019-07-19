@@ -14,6 +14,7 @@ Created on Wed Dec  5 16:05:47 2018
 #     - raw_dir - root directory containing the raw data
 #     - tif_dir - output directory for the raw to hdf5 converter
 #     - results_dir - output results directory
+#     - ops - custom parameters to control suite2p output (optional)
 # The script will look in the folder: raw_dir/mouse_name/date/expts[0] for the file Image_0001_0001.raw and Experiment.xml
 
 
@@ -25,5 +26,6 @@ db.append({
     "expts": [1, 2],
     "raw_dir": "/media/storage/data/rui",
     "tif_dir": "/media/storage/data/rui/tif",
-    "results_dir": "/media/storage/data/rui/results"
+    "results_dir": "/media/storage/data/rui/results",
+    "ops": {'save_mat': False}
 })
