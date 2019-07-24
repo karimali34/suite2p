@@ -11,9 +11,12 @@ dependencies:
   - h5py
   - scikit-image
   - scikit-learn
+  - cython
   - pip:
     - PyQt5
     - pyqtgraph
     - natsort
     - scanimage-tiff-reader
-    - rastermap=0.1.0
+    - rastermap==0.1.0
+    - cvxopt
+    - git+https://github.com/losonczylab/sima
