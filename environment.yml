@@ -11,6 +11,7 @@ dependencies:
   - h5py
   - scikit-image
   - scikit-learn
+  - cython
   - pip:
     - PyQt5
     - git+https://github.com/pyqtgraph/pyqtgraph
@@ -18,3 +19,5 @@ dependencies:
     - scanimage-tiff-reader
     - rastermap==0.1.0
     - suite2p
+    - cvxopt
+    - git+https://github.com/losonczylab/sima

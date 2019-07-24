@@ -12,6 +12,7 @@ def run_suite2p(in_path, out_path, fs, nplanes, opts={}):
 		'nplanes': nplanes,
 		'fs': fs,
 		'save_mat': True,
+		'reg_tif': True
 	}
 
 	ops = {**default, **default2, **opts}
