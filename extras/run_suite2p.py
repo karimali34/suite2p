@@ -6,13 +6,13 @@ def run_suite2p(in_path, out_path, fs, nplanes, opts={}):
 	default = default_ops()
 	default2 = {
 		'save_path0': out_path,
-		'delete_bin': True,
+		'delete_bin': False,
 		'look_one_level_down': True,
 		'data_path': [],
 		'nplanes': nplanes,
 		'fs': fs,
 		'save_mat': True,
-		'reg_tif': True
+		'reg_tif': False
 	}
 
 	ops = {**default, **default2, **opts}
@@ -21,4 +21,5 @@ def run_suite2p(in_path, out_path, fs, nplanes, opts={}):
 
 	print(ops)
 
-	run_s2p(ops=ops, db=db)
+	ops = run_s2p(ops=ops, db=db)
+	return ops

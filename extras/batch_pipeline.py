@@ -20,6 +20,7 @@ import logging
 import os
 import glob
 import argparse
+from deconv import do_deconv
 
 logging.basicConfig(format="%(asctime)s %(relativeCreated)12d [%(filename)s:%(funcName)15s():%(lineno)s] [%(process)d] %(message)s", datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
 
@@ -40,6 +41,7 @@ for i in db:
     print(f'Temp directory: {tif_dir}')
     print(f'Results directory: {results_dir}')
     offset = 1
+    nframes = []
     for j in i['expts']:
         in_dir = os.path.join(i['raw_dir'], i['mouse_name'], i['date'], str(j))
         
@@ -51,6 +53,7 @@ for i in db:
         logging.info(f'Parsing Experiment.xml in {xml_path}')
         if os.path.exists(xml_path):
             (x, y, fr, num_frames, num_planes) = parse_xml(xml_path)
+            nframes = nframes.append(num_frames)
         else:
             raise ValueError(f'Experiment.xml does not exist at {xml_path}')
         
@@ -68,6 +71,11 @@ for i in db:
             os.makedirs(results_dir)
             
     if 'ops' in i:
-        run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes, i['ops'])
+        ops = run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes, i['ops'])
     else:
-        run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes)
+        ops = run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes)
+
+    ops = ops[0]
+    do_deconv(results_dir, 0.5/fr, nframes, i['expts'])
+    #os.remove(ops['reg_file'])
+    #os.remove(tif_dir)
