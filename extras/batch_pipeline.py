@@ -53,9 +53,9 @@ for i in db:
         logging.info(f'Parsing Experiment.xml in {xml_path}')
         if os.path.exists(xml_path):
             (x, y, fr, num_frames, num_planes) = parse_xml(xml_path)
-            nframes = nframes.append(num_frames)
+            nframes.append(num_frames)
         else:
-            raise ValueError(f'Experiment.xml does not exist at {xml_path}')
+            raise ValueError(f"Experiment.xml does not exist at {xml_path}")
         
         raw_file = os.path.join(in_dir, 'Image_0001_0001.raw')
         logging.info(f'Converting {raw_file} to tiffs')

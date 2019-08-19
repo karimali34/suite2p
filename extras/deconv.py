@@ -13,6 +13,7 @@ import caiman.source_extraction.cnmf.deconvolution as deconv
 import multiprocessing
 import time
 from tiffile import imwrite
+import skimage
 
 def do_deconv(results_dir, frameinterval, nframes, expt_dirs):
 	nf_sum = np.cumsum(np.append([0], nframes))
@@ -90,8 +91,8 @@ def frExtractTimeCourses(reg_dir, results_dir, frameinterval, frame_start, frame
 		tmp = maskNeurons.flatten()
 		tcs['cellIDs'] = np.unique(tmp[np.where(tmp > 0)])
 		tcs['nCells'] = tcs['cellIDs'].size
-		tcs['raw'] = np.ones((tcs['nSamples'], np.max(tcs['cellIDs'])), dtype=np.float32)
-		tcs['ring'] = np.ones((tcs['nSamples'], np.max(tcs['cellIDs'])), dtype=np.float32)
+		#tcs['raw'] = np.ones((tcs['nSamples'], np.max(tcs['cellIDs'])), dtype=np.float32)
+		#tcs['ring'] = np.ones((tcs['nSamples'], np.max(tcs['cellIDs'])), dtype=np.float32)
 		# iX = 0
 		# for i_group in range(n_group):
 		# if i_group == n_group - 1:
@@ -150,12 +151,12 @@ def tcGetBaseline(x, ds=16):
 	m = np.mean(x, axis=0)
 	xm = x - m                                                                                                                                                                                                                                          
 	xint = np.cumsum(xm, axis=0)
-	#xint2 = signal.decimate(xint, ds, axis=0)
+	xint2 = signal.decimate(xint, ds, axis=0)
 	N = 4
 	F = 21
-	x0 = signal.savgol_filter(xint, F, N, deriv=0, axis=0)
-	x1 = -signal.savgol_filter(xint, F, N, deriv=1, axis=0)
-	x2 = 2*signal.savgol_filter(xint, F, N, deriv=2, axis=0)
+	x0 = signal.savgol_filter(xint2, F, N, deriv=0, axis=0)
+	x1 = -signal.savgol_filter(xint2, F, N, deriv=1, axis=0)
+	x2 = 2*signal.savgol_filter(xint2, F, N, deriv=2, axis=0)
 	x0 = np.roll(x0, -int(np.floor(F/2)), axis=0)
 	x1 = np.roll(x1, -int(np.floor(F/2)), axis=0)
 	x2 = np.roll(x2, -int(np.floor(F/2)), axis=0)
@@ -197,6 +198,16 @@ def doLoadMasks(results_dir, dims, plane=0):
 			cell_num += 1
 
 	maskNeurons = maskNeurons.reshape(dims)
+
+	props = skimage.measure.regionprops(maskNeurons)
+	cent = [x.centroid[1] for x in props]
+	idx = np.argsort(cent)
+	mask2 = np.zeros(maskNeurons.shape, dtype=np.uint32)
+	for i in range(len(cent)):
+		mask2[np.where(maskNeurons == (idx[i]+1))] = i+1
+
+	maskNeurons = mask2
+
 	(x, y) = np.meshgrid(np.arange(-1, 2), np.arange(-1, 2))
 	rad = np.sqrt(x**2 + y**2)
 	inner_struct = rad <= 1
@@ -242,12 +253,12 @@ def stackGetTimeCourses(stack, mask, type='mean'):
 	nCells = unqLabels.shape[0]
 
 	if type == 'mean':
-		tc = np.random.randint(10, size=(nFrames, np.max(unqLabels)))
+		tc = np.random.randint(10, size=(nFrames, np.max(unqLabels))).astype(np.float64)
 		for ic in range(nCells):
-			print('Getting timecourse for {}'.format(unqLabels[ic]))
+			print('Getting timecourse for {}/{}'.format(unqLabels[ic], nCells))
 			tc[:, ic] = np.squeeze(np.nanmean(stackCols[:, np.where(labelCols == unqLabels[ic])], axis=2))
 	elif type == 'min':
-		tc = np.random.randint(10, size=(nFrames, np.max(unqLabels)))
+		tc = np.random.randint(10, size=(nFrames, np.max(unqLabels))).astype(np.float64)
 		for ic in range(nCells):
 			tc[:, ic] = np.squeeze(np.nanmin(stackCols[:, np.where(labelCols == unqLabels[ic])], axis=2))
 	elif type == 'none':
