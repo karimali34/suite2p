@@ -14,12 +14,14 @@ class abfLoad:
     def __init__(self, fn, frameCh=0):
         self.abf = pyabf.ABF(fn)
         self.abf.setSweep(sweepNumber=0, channel=frameCh)
-        
+
     def frame_ts(self):
+        if "_abfLoad__ts" in self.__dict__:
+            return self.__ts
         thres = 3
         idx = np.multiply(self.abf.sweepY < thres, 1)
         idx = np.diff(idx)
         idx = idx > 0
         idx = np.append(self.abf.sweepY[0] < thres, idx)
-        self.ts = self.abf.sweepX[ idx ]
-        return self.ts
+        self.__ts = self.abf.sweepX[ idx ]
+        return self.__ts
