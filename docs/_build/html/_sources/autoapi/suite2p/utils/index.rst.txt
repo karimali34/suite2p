@@ -1,0 +1,73 @@
+:mod:`suite2p.utils`
+====================
+
+.. py:module:: suite2p.utils
+
+
+Module Contents
+---------------
+
+.. function:: boundary(ypix, xpix)
+
+   returns pixels of mask that are on the exterior of the mask
+
+
+.. function:: circle(med, r)
+
+   returns pixels of circle with radius 1.25x radius of cell (r)
+
+
+.. function:: fitMVGaus(y, x, lam, thres=2.5)
+
+   computes 2D gaussian fit to data and returns ellipse of radius thres standard deviations.
+
+   :param y: pixel locations in y
+   :type y: float, array
+   :param x: pixel locations in x
+   :type x: float, array
+   :param lam: weights of each pixel
+   :type lam: float, array
+
+   :returns: * **mu** (*float*) -- mean of gaussian fit.
+             * **cov** (*float*) -- covariance of gaussian fit.
+             * **radii** (*float, array*) -- half of major and minor axis lengths of elliptical fit.
+             * **ellipse** (*float, array*) -- coordinates of elliptical fit.
+             * **area** (*float*) -- area of ellipse.
+
+
+.. function:: enhanced_mean_image(ops)
+
+   computes enhanced mean image and adds it to ops
+
+   Median filters ops['meanImg'] with 4*diameter in 2D and subtracts and
+   divides by this median-filtered image to return a high-pass filtered
+   image ops['meanImgE']
+
+   :param ops: uses 'meanImg', 'aspect', 'diameter', 'yrange' and 'xrange'
+   :type ops: dictionary
+
+   :returns: **ops** -- 'meanImgE' field added
+   :rtype: dictionary
+
+
+.. function:: sub2ind(array_shape, rows, cols)
+
+
+.. function:: sample_frames(ops, ix, reg_file, crop=True)
+
+   get frames ix from reg_file
+       frames are cropped by ops['yrange'] and ops['xrange']
+
+   :param ops: requires 'badframes', 'yrange', 'xrange', 'Ly', 'Lx'
+   :type ops: dict
+   :param ix: frames to take
+   :type ix: int, array
+   :param reg_file: location of binary file to read (frames x Ly x Lx)
+   :type reg_file: str
+   :param crop: whether or not to crop by 'yrange' and 'xrange'
+   :type crop: bool
+
+   :returns: **mov** -- frames x Ly x Lx
+   :rtype: int16, array
+
+
