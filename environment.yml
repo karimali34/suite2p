@@ -21,3 +21,4 @@ dependencies:
     - suite2p
     - cvxopt
     - git+https://github.com/losonczylab/sima
+    - pyabf

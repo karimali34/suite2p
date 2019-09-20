@@ -1,0 +1,25 @@
+"""
+Read and process abf behaviour files in python
+Right now, only extracts the frame time-stamps
+Will implement full behaviour extraction methods in future
+
+direct complaints to HaoRan Chang
+2019-09-19
+"""
+
+import pyabf
+import numpy as np
+
+class abfLoad:
+    def __init__(self, fn, frameCh=0):
+        self.abf = pyabf.ABF(fn)
+        self.abf.setSweep(sweepNumber=0, channel=frameCh)
+        
+    def frame_ts(self):
+        thres = 3
+        idx = np.multiply(self.abf.sweepY < thres, 1)
+        idx = np.diff(idx)
+        idx = idx > 0
+        idx = np.append(self.abf.sweepY[0] < thres, idx)
+        self.ts = self.abf.sweepX[ idx ]
+        return self.ts

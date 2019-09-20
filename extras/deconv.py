@@ -14,6 +14,7 @@ import multiprocessing
 import time
 from tiffile import imwrite
 import skimage
+from abfLoad import abfLoad
 
 def do_deconv(results_dir, frameinterval, nframes, expt_dirs):
 	nf_sum = np.cumsum(np.append([0], nframes))
