@@ -12,6 +12,8 @@ dependencies:
   - scikit-image
   - scikit-learn
   - cython
+  - conda-forge::opencv
+  - ipyparallel
   - pip:
     - PyQt5
     - git+https://github.com/pyqtgraph/pyqtgraph
@@ -21,3 +23,8 @@ dependencies:
     - suite2p
     - cvxopt
     - git+https://github.com/losonczylab/sima
+    - tqdm
+    - pynwb
+    - tiffile
+    - holoviews
+    - psutil
