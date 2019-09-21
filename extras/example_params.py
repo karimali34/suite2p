@@ -14,6 +14,7 @@ Created on Wed Dec  5 16:05:47 2018
 #     - raw_dir - root directory containing the raw data
 #     - tif_dir - output directory for the raw to hdf5 converter
 #     - results_dir - output results directory
+#     - abf_dir - (optional) directory for abf behavior files (may lead to erroneous tcs.tt)
 #     - ops - custom parameters to control suite2p output (optional)
 # The script will look in the folder: raw_dir/mouse_name/date/expts[0] for the file Image_0001_0001.raw and Experiment.xml
 
@@ -21,12 +22,12 @@ Created on Wed Dec  5 16:05:47 2018
 db = []
 
 db.append({
-    "mouse_name": "rsc036",
-    "date": "2017_11_09",
-    "expts": [1],
-    "raw_dir": "/mnt/polaris1/scratch",
-    "tif_dir": "/mnt/storage/temp/tif",
-    "results_dir": "/mnt/storage/temp/results",
+    "mouse_name": "mPFC10",
+    "date": "2019_06_16",
+    "expts": [1, 2],
+    "raw_dir": "/media/storage/data/rui",
+    "tif_dir": "/media/storage/data/rui/tif",
+    "results_dir": "/media/storage/data/rui/results",
     "abf_dir": "/mnt/mohaj1/homes/dun.mao/behavior",
     "ops": {'save_mat': False}
 })

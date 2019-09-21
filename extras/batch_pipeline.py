@@ -4,10 +4,10 @@
 @author: karim
 """
 
-# Runs the suite2p pipeline for each item in db from params.py. 
+# Runs the suite2p pipeline for each item in db from params.py.
 #
 # run using: python batch_pipeline.py
-# 
+#
 # If you wish to use a different file to create the db variable, provide the path to the file using
 # the --params flag
 #
@@ -37,6 +37,11 @@ for i in db:
     comb_dir = '_'.join(str(x) for x in i['expts'])
     tif_dir = os.path.join(i['tif_dir'], i['mouse_name'], i['date'], comb_dir)
     results_dir = os.path.join(i['results_dir'], i['mouse_name'], i['date'], comb_dir)
+
+    if 'abf_dir' in i:
+        abf_dir = [ os.path.join(db['abf_dir'], db['mouse_name'], db['date'] + "_" + str(x) + ".abf") for x in db['expts'] ]
+    else:
+        abf_dir = None
     print(f'Running expt {i}')
     print(f'Temp directory: {tif_dir}')
     print(f'Results directory: {results_dir}')
@@ -44,11 +49,11 @@ for i in db:
     nframes = []
     for j in i['expts']:
         in_dir = os.path.join(i['raw_dir'], i['mouse_name'], i['date'], str(j))
-        
+
         if not os.path.isdir(tif_dir):
             logging.info(f'Creating tif path {tif_dir}')
             os.makedirs(tif_dir)
-            
+
         xml_path = os.path.join(in_dir, "Experiment.xml")
         logging.info(f'Parsing Experiment.xml in {xml_path}')
         if os.path.exists(xml_path):
@@ -56,7 +61,7 @@ for i in db:
             nframes.append(num_frames)
         else:
             raise ValueError(f"Experiment.xml does not exist at {xml_path}")
-        
+
         raw_file = os.path.join(in_dir, 'Image_0001_0001.raw')
         logging.info(f'Converting {raw_file} to tiffs')
         if os.path.exists(raw_file):
@@ -64,18 +69,18 @@ for i in db:
             offset += nb
         else:
             raise ValueError(f'Problem loading {raw_file}')
-        
-        
+
+
         if not os.path.isdir(results_dir):
             logging.info(f'Creating results directory {results_dir}')
             os.makedirs(results_dir)
-            
+
     if 'ops' in i:
         ops = run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes, i['ops'])
     else:
         ops = run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes)
 
     ops = ops[0]
-    do_deconv(results_dir, 0.5/fr, nframes, i['expts'])
+    do_deconv(results_dir, 0.5/fr, nframes, i['expts'], abf_dir)
     #os.remove(ops['reg_file'])
     #os.remove(tif_dir)

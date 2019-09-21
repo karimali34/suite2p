@@ -25,3 +25,9 @@ class abfLoad:
         idx = np.append(self.abf.sweepY[0] < thres, idx)
         self.__ts = self.abf.sweepX[ idx ]
         return self.__ts
+
+    def Fs(self):
+        if "_abfLoad__Fs" in self.__dict__:
+            return self.__Fs
+        self.__Fs = 1 / np.median( np.diff(self.frame_ts()) )
+        return self.__Fs

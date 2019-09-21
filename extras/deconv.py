@@ -16,7 +16,7 @@ from tiffile import imwrite
 import skimage
 from abfLoad import abfLoad
 
-def do_deconv(results_dir, frameinterval, nframes, expt_dirs):
+def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None):
 	nf_sum = np.cumsum(np.append([0], nframes))
 	for i in range(len(nframes)):
 		print('Running expt_dir {} ({} frames)'.format(expt_dirs[i], nframes[i]))
@@ -31,7 +31,7 @@ def do_deconv(results_dir, frameinterval, nframes, expt_dirs):
 		else:
 			frame_start = nf_sum[i]
 			frame_end = nf_sum[i+1]
-			tcs = frExtractTimeCourses(results_dir, res_dir, frameinterval, frame_start, frame_end)
+			tcs = frExtractTimeCourses(results_dir, res_dir, abf_dir, frameinterval, frame_start, frame_end)
 		genDeconv(res_dir, tcs['ratio'])
 
 def genDeconv(out_dir, ratio):
@@ -52,12 +52,12 @@ def genDeconv(out_dir, ratio):
 	#np.fft.restore_all()
 	#for i in range(ratio.shape[1]):
 	#	(sp, c, params) = deconv.spike_inference(ratio[:, i], mode='psd')
-		
+
 	savemat(os.path.join(out_dir, 'deconv.mat'), {'deconv': sp}, do_compression=True)
 	savemat(os.path.join(out_dir, 'ratio_model.mat'), {'ratio_model': c}, do_compression=True)
 
 
-def frExtractTimeCourses(reg_dir, results_dir, frameinterval, frame_start, frame_end, overwrite=True, updateRaw=True, adaptBaseLine=False, ringSubtract=True, maskOp='manual', maskAlign='aligned'):
+def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_start, frame_end, overwrite=True, updateRaw=True, adaptBaseLine=False, ringSubtract=True, maskOp='manual', maskAlign='aligned'):
 	fnTimeCourses = os.path.join(results_dir, 'timecourses.mat')
 
 	reg_file = os.path.join(reg_dir, 'suite2p/plane0/data.bin')
@@ -102,7 +102,7 @@ def frExtractTimeCourses(reg_dir, results_dir, frameinterval, frame_start, frame
 		# 	filens = np.arange(i_group*group_size, (i_group + 1)*group_size)
 		# num_frames = sizetiff(l[filens[0]:(filens[-1]+1)])
 		# stack = np.zeros((num_frames, ) + dims, dtype=np.uint16)
-		
+
 		print('Loading reg file from {}'.format(reg_file))
 		reg_data = np.memmap(reg_file, dtype=np.int16, mode='r')
 		stack = np.reshape(reg_data, (-1, ops['Lx'], ops['Ly']))
@@ -143,14 +143,25 @@ def frExtractTimeCourses(reg_dir, results_dir, frameinterval, frame_start, frame
 	else:
 		tcs['ratio'] = 100 * (tcs['raw'] - tcs['baseline']) / tcs['baseline']
 
-	tcs['tt'] = np.arange(tcs['raw'].shape[0]) * frameinterval
+	if abf_dir is None:
+		tcs['tt'] = np.arange(tcs['raw'].shape[0]) * frameinterval
+	else:
+		tt = []
+		rax = 0.0
+		for x in abf_dir:
+			abf_o = abfLoad(x)
+			frame_ts = abf_o.frame_ts()
+			tt.append( np.add( frame_ts, rax + 1 / abf_o.Fs() ) )
+			rax += frame_ts[-1]
+		tt = np.concatenate(tt)
+		tcs['tt'] = tt
 	savemat(fnTimeCourses, {'tcs': tcs}, do_compression=True)
 	return tcs
 
 def tcGetBaseline(x, ds=16):
 	ncells = x.shape[1]
 	m = np.mean(x, axis=0)
-	xm = x - m                                                                                                                                                                                                                                          
+	xm = x - m
 	xint = np.cumsum(xm, axis=0)
 	xint2 = signal.decimate(xint, ds, axis=0)
 	N = 4
