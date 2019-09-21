@@ -1,5 +1,6 @@
 name: suite2p
 dependencies:
+  - gcc_linux-64 # this issue is isolated to Arch Linux... the version of gcc is so new and amazing on this rolling release that ld doesn't understand what cython is outputting...
   - python>3.5
   - pip
   - mkl_fft=1.0.10
