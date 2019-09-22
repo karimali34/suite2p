@@ -106,7 +106,9 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 		reg_data = np.memmap(reg_file, dtype=np.int16, mode='r')
 		stack = np.reshape(reg_data, (-1, ops['Lx'], ops['Ly']))
 		stack_mean = np.mean(stack[frame_start:frame_end, :, :], axis=0)
+
 		tifffile.imwrite(os.path.join(results_dir, 'avgstack.tif'), stack_mean.astype(np.int16))
+		savemat(os.path.join(results_dir, 'avgstack.mat'), {'avg_stack': stack_mean.astype(np.float32)})
 		# for i in filens:
 		# 	tmp_numframes = sizetiff([l[i]])
 		# 	stack[(i*tmp_numframes):((i+1)*tmp_numframes), :, :] = tiffile.imread(l[i])
@@ -132,7 +134,7 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 
 	if ringSubtract:
 		print('Performing ring subtract')
-		(u, s, v) = fbpca.pca(tcs['ring'], 1)
+		(u, s, v) = fbpca.pca(tcs['ring'], 1, raw=True)
 		tcs['neuropil'] = np.matmul(np.matmul(u, np.reshape(s, (1, 1))), v)
 
 	print('Calculating ratio')
@@ -166,7 +168,7 @@ def tcGetBaseline(x, ds=16):
 	N = 4
 	F = 21
 	x0 = signal.savgol_filter(xint2, F, N, deriv=0, axis=0)
-	x1 = -signal.savgol_filter(xint2, F, N, deriv=1, axis=0)
+	x1 = signal.savgol_filter(xint2, F, N, deriv=1, axis=0)
 	x2 = 2*signal.savgol_filter(xint2, F, N, deriv=2, axis=0)
 	x0 = np.roll(x0, -int(np.floor(F/2)), axis=0)
 	x1 = np.roll(x1, -int(np.floor(F/2)), axis=0)
@@ -175,9 +177,9 @@ def tcGetBaseline(x, ds=16):
 	b = np.zeros(ncells)
 	for i in range(ncells):
 		print('Getting baseline for {}'.format(i+1))
-		ind1 = np.where(x1[:, i] == 0)
-		ind2 = np.where((x1[:-1:2, i] * x1[1::2, i]) < 0)
-		bp = np.sort(np.concatenate((ind1[0], ind2[0])))
+		ind1 = np.where(x1[:, i] == 0)[0]
+		ind2 = np.where((x1[:-1:2, i] * x1[1::2, i]) < 0)[0]
+		bp = np.sort(np.concatenate((ind1, ind2)))
 		xlin = x0[:, i] - signal.detrend(x0[:, i], type='linear', bp=bp)
 		xlinp = np.diff(xlin)/ds
 		b[i] = np.percentile(xlinp[np.where(xlinp < 0)], 10)
