@@ -13,21 +13,21 @@
 #
 # python batch_pipeline.py --params /path/to/params.py
 
-from parse_xml import parse_xml
-from raw2h5 import raw2h5
-from run_suite2p import run_suite2p
 import logging
-import os
-import glob
 import argparse
-from deconv import do_deconv
-
 logging.basicConfig(format="%(asctime)s %(relativeCreated)12d [%(filename)s:%(funcName)15s():%(lineno)s] [%(process)d] %(message)s", datefmt='%Y-%m-%d %H:%M:%S', level=logging.DEBUG)
 
 parser = argparse.ArgumentParser(description='Run pipeline for Suite2p')
-parser.add_argument('--params', dest='params_fn', nargs=1, help='Location of the params.py file', default='./params.py')
+parser.add_argument('-p', '--params', dest='params_fn', nargs=1, help='Location of the params.py file', default='./params.py')
+parser.add_argument('-m', '--mode', dest='run_mode', help="Choose to run either the full pipeline (\'all\'), only suite2p (\'suite2p\') or only deconv (\'deconv\')", default='all')
 args = parser.parse_args()
 params_file = args.params_fn
+run_mode = args.run_mode
+
+from parse_xml import parse_xml
+from raw2h5 import raw2h5
+import os
+import glob
 
 with open(params_file) as f:
     code = compile(f.read(), params_file, 'exec')
@@ -39,7 +39,7 @@ for i in db:
     results_dir = os.path.join(i['results_dir'], i['mouse_name'], i['date'], comb_dir)
 
     if 'abf_dir' in i:
-        abf_dir = [ os.path.join(db['abf_dir'], db['mouse_name'], db['date'] + "_" + str(x) + ".abf") for x in db['expts'] ]
+        abf_dir = [ os.path.join(i['abf_dir'], i['mouse_name'], i['date'] + "_" + str(x) + ".abf") for x in i['expts'] ]
     else:
         abf_dir = None
     print(f'Running expt {i}')
@@ -75,12 +75,15 @@ for i in db:
             logging.info(f'Creating results directory {results_dir}')
             os.makedirs(results_dir)
 
-    if 'ops' in i:
-        ops = run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes, i['ops'])
-    else:
-        ops = run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes)
-
-    ops = ops[0]
-    do_deconv(results_dir, 0.5/fr, nframes, i['expts'], abf_dir)
+    if run_mode == 'suite2p' or run_mode == 'all':
+        from run_suite2p import run_suite2p
+        if 'ops' in i:
+            ops = run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes, i['ops'])
+        else:
+            ops = run_suite2p(os.path.join(tif_dir, ''), results_dir, fr, num_planes)
+        ops = ops[0]
+    if run_mode == 'deconv' or run_mode == 'all':
+        from deconv import do_deconv
+        do_deconv(results_dir, 0.5/fr, nframes, i['expts'], abf_dir)
     #os.remove(ops['reg_file'])
     #os.remove(tif_dir)

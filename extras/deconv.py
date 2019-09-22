@@ -2,7 +2,7 @@ import os
 import numpy as np
 import glob
 import natsort
-import tiffile
+import tifffile
 import fbpca
 from scipy.io import savemat, loadmat
 import scipy.ndimage.morphology as ndimage
@@ -12,7 +12,6 @@ import caiman.source_extraction.cnmf.deconvolution as deconv
 #import constrained_foopsi as deconv
 import multiprocessing
 import time
-from tiffile import imwrite
 import skimage
 from abfLoad import abfLoad
 
@@ -107,7 +106,7 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 		reg_data = np.memmap(reg_file, dtype=np.int16, mode='r')
 		stack = np.reshape(reg_data, (-1, ops['Lx'], ops['Ly']))
 		stack_mean = np.mean(stack[frame_start:frame_end, :, :], axis=0)
-		imwrite(os.path.join(results_dir, 'avgstack.tif'), stack_mean.astype(np.int16))
+		tifffile.imwrite(os.path.join(results_dir, 'avgstack.tif'), stack_mean.astype(np.int16))
 		# for i in filens:
 		# 	tmp_numframes = sizetiff([l[i]])
 		# 	stack[(i*tmp_numframes):((i+1)*tmp_numframes), :, :] = tiffile.imread(l[i])
@@ -246,7 +245,7 @@ def doLoadMasks(results_dir, dims, plane=0):
 def sizetiff(tiffs):
 	nframes = 0
 	for t in tiffs:
-		with tiffile.TiffFile(t) as tmp:
+		with tifffile.TiffFile(t) as tmp:
 			nframes += len(tmp.pages)
 	return nframes
 

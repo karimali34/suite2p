@@ -22,7 +22,7 @@ class abfLoad:
         idx = np.multiply(self.abf.sweepY < thres, 1)
         idx = np.diff(idx)
         idx = idx > 0
-        idx = np.append(self.abf.sweepY[0] < thres, idx)
+        idx = np.append(False, idx)
         self.__ts = self.abf.sweepX[ idx ]
         return self.__ts
 

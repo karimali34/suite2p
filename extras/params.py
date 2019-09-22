@@ -22,7 +22,7 @@ db = []
 
 db.append({
     "mouse_name": "rsc036",
-    "date": "2017_11_09",
+    "date": "2017_11_12",
     "expts": [1],
     "raw_dir": "/mnt/polaris1/scratch",
     "tif_dir": "/mnt/storage/temp/tif",
