@@ -1,5 +1,7 @@
 name: suite2p
 dependencies:
+  - conda-forge::caiman
+  - gcc_linux-64 # this issue is isolated to Arch Linux... the version of gcc is so new and amazing on this rolling release that ld doesn't understand what cython is outputting...
   - python>3.5
   - pip
   - mkl_fft=1.0.10
@@ -23,8 +25,10 @@ dependencies:
     - suite2p
     - cvxopt
     - git+https://github.com/losonczylab/sima
+    - pyabf
+    - tifffile
+    - fbpca
     - tqdm
     - pynwb
-    - tiffile
     - holoviews
     - psutil
