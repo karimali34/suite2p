@@ -182,7 +182,12 @@ def tcGetBaseline(x, ds=16):
 		bp = np.sort(np.concatenate((ind1, ind2)))
 		xlin = x0[:, i] - signal.detrend(x0[:, i], type='linear', bp=bp)
 		xlinp = np.diff(xlin)/ds
-		b[i] = np.percentile(xlinp[np.where(xlinp < 0)], 10)
+		xlinp_neg = xlinp[np.where(xlinp < 0)]
+
+		if xlinp_neg.shape[0] > 0:
+			b[i] = np.percentile(xlinp_neg, 10)
+		else:
+			b[i] = 0;
 	b = b + m
 	return b
 

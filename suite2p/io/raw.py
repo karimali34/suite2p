@@ -75,14 +75,12 @@ def raw_to_binary(ops):
         nts = int(timelapse.attrib['timepoints'])
         x = int(lsm.attrib['pixelX'])
         y = int(lsm.attrib['pixelY'])
-        n_to_load = x*y
 
         with open(raw_fn, 'rb') as f:
             nblocks = math.ceil(nframes_all/nbatch)
             for j in range(nblocks):
-                data = np.fromfile(f, dtype='uint16', count=n_to_load*nbatch)
+                data = np.fromfile(f, dtype='uint16', count=x*y*nbatch)
                 num_loaded = int(len(data) / (x * y))
-                print(f'num_loaded: {num_loaded}')
                 data = np.reshape(data, (x, y, num_loaded), order='F')
                 data = np.rot90(data, k=1, axes=(0, 1))
                 data = np.transpose(data, (2, 1, 0))
@@ -91,7 +89,6 @@ def raw_to_binary(ops):
                         ops1[k]['meanImg'] = np.zeros((x, y), np.float32)
                         ops1[k]['nframes'] = 0
                     idx = np.arange(k, num_loaded, nplanes*nchannels)
-                    print(idx)
                     im2write = data[idx, :, :].astype(np.int16)
                     reg_file[k].write(bytearray(im2write))
                     ops1[k]['meanImg'] += im2write.astype(np.float32).sum(axis=0)
