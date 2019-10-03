@@ -2,7 +2,7 @@ import os
 import numpy as np
 import time, os, shutil
 from scipy.io import savemat
-from .io import tiff, h5
+from .io import tiff, h5, save, raw
 from .registration import register, metrics
 from .extraction import extract, dcnv
 from . import utils
@@ -179,6 +179,9 @@ def run_s2p(ops={},db={}):
             if 'mesoscan' in ops and ops['mesoscan']:
                 ops1 = tiff.mesoscan_to_binary(ops)
                 print('time %4.2f sec. Wrote tifs to binaries for %d planes'%(time.time()-(t0), len(ops1)))
+            elif 'raw' in ops and ops['raw']:
+                ops1 = raw.raw_to_binary(ops)
+                print('time %4.2f sec. Wrote raw to binaries for %d planes'%(time.time()-(t0), len(ops1)))
             elif HAS_HAUS:
                 print('time %4.2f sec. Using HAUSIO')
                 dataset = haussio.load_haussio(ops['data_path'][0])
@@ -289,7 +292,7 @@ def run_s2p(ops={},db={}):
 
     #### COMBINE PLANES or FIELDS OF VIEW ####
     if len(ops1)>1 and ops1[0]['combined'] and roidetect:
-        utils.combined(ops1)
+        save.combined(ops1)
 
     # running a clean up script
     if 'clean_script' in ops1[0]:
