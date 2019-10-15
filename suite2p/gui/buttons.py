@@ -129,8 +129,8 @@ class SizeButton(QtGui.QPushButton):
         elif bid==1:
             parent.win.ci.layout.setColumnStretchFactor(0,ts)
             parent.win.ci.layout.setColumnStretchFactor(1,ts)
-            parent.p2.setXLink('plot1')
-            parent.p2.setYLink('plot1')
+            parent.p2.setXLink(parent.p1)
+            parent.p2.setYLink(parent.p1)
         elif bid==2:
             parent.p2.linkView(parent.p2.XAxis,view=None)
             parent.p2.linkView(parent.p2.YAxis,view=None)

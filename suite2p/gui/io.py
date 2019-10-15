@@ -129,10 +129,12 @@ def enable_views_and_classifier(parent):
     for btn in parent.sizebtns.buttons():
         btn.setStyleSheet(parent.styleUnpressed)
         btn.setEnabled(True)
-        if b == 0:
+        if b == 1:
             btn.setChecked(True)
             btn.setStyleSheet(parent.stylePressed)
             btn.press(parent)
+            parent.p2.setXLink(parent.p1)
+            parent.p2.setYLink(parent.p1)
         b += 1
     for b in range(3):
         if b==0:

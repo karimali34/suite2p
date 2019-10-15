@@ -228,8 +228,8 @@ class MainWindow(QtGui.QMainWindow):
         self.color2.setLevels([0,255])
 
         # LINK TWO VIEWS!
-        self.p2.setXLink("plot1")
-        self.p2.setYLink("plot1")
+        self.p2.setXLink(self.p1)
+        self.p2.setYLink(self.p1)
 
         # --- fluorescence trace plot
         self.p3 = graphics.TraceBox(parent=self, invertY=False)

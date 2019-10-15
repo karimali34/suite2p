@@ -30,25 +30,25 @@ def make_buttons(parent,b0):
 def load_classifier(parent):
     name = QtGui.QFileDialog.getOpenFileName(parent, "Open File")
     if name:
-        classgui.load(parent, name[0])
-        parent.class_activated()
+        load(parent, name[0])
+        class_activated(parent)
     else:
         print("no classifier")
 
 def load_s2p_classifier(parent):
-    classgui.load(parent, parent.classorig)
-    parent.class_file()
+    load(parent, parent.classorig)
+    class_file(parent)
     parent.saveDefault.setEnabled(True)
 
 def load_default_classifier(parent):
-    classgui.load(
+    load(
         parent,
         os.path.join(
             os.path.abspath(os.path.dirname(__main__.__file__)),
             "classifiers/classifier_user.npy",
         ),
     )
-    parent.class_activated()
+    class_activated(parent)
 
 def class_file(parent):
     if parent.classfile == os.path.join(
@@ -67,7 +67,7 @@ def class_file(parent):
     parent.classLabel.setText(cstr)
 
 def class_activated(parent):
-    parent.class_file()
+    class_file(parent)
     parent.saveDefault.setEnabled(True)
     parent.addtoclass.setStyleSheet(parent.styleUnpressed)
     parent.addtoclass.setEnabled(True)
@@ -84,7 +84,7 @@ def class_default(parent):
             os.path.abspath(os.path.dirname(__file__)),
             "classifiers/classifier_user.npy",
         )
-        classgui.save_model(classfile, parent.model.stats, parent.model.iscell, parent.model.keys)
+        save_model(classfile, parent.model.stats, parent.model.iscell, parent.model.keys)
 
 def reset_default(parent):
     dm = QtGui.QMessageBox.question(
@@ -223,6 +223,7 @@ def activate(parent, inactive):
         parent.probcell = parent.model.apply(parent.stat)
     masks.class_masks(parent)
     parent.update_plot()
+    print('classifier successfully loaded')
 
 def disable(parent):
     parent.classbtn.setEnabled(False)
