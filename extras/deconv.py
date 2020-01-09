@@ -15,23 +15,28 @@ import time
 import skimage
 from abfLoad import abfLoad
 
-def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None):
+def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None, nplanes=1):
 	nf_sum = np.cumsum(np.append([0], nframes))
 	for i in range(len(nframes)):
 		print('Running expt_dir {} ({} frames)'.format(expt_dirs[i], nframes[i]))
 		res_dir = os.path.abspath(os.path.join(results_dir, '..', str(expt_dirs[i])))
 		if not os.path.isdir(res_dir):
 			os.makedirs(res_dir)
-		fnTimeCourses = os.path.join(res_dir, 'suite2p/plane0/timecourses.mat')
-		if os.path.isfile(fnTimeCourses):
-			tmp = loadmat(fnTimeCourses)
-			tcs = {}
-			tcs['ratio'] = tmp['tcs']['ratio'][0][0]
-		else:
-			frame_start = nf_sum[i]
-			frame_end = nf_sum[i+1]
-			tcs = frExtractTimeCourses(results_dir, res_dir, abf_dir, frameinterval, frame_start, frame_end)
-		genDeconv(res_dir, tcs['ratio'])
+		for p in range(nplanes):
+			if nplanes > 1:
+				res_dir2 = os.path.join(res_dir, 'suite2p/plane{}'.format(p))
+			else:
+				res_dir2 = res_dir
+			fnTimeCourses = os.path.join(res_dir2, 'timecourses.mat'.format(p))
+			if os.path.isfile(fnTimeCourses):
+				tmp = loadmat(fnTimeCourses)
+				tcs = {}
+				tcs['ratio'] = tmp['tcs']['ratio'][0][0]
+			else:
+				frame_start = nf_sum[i]
+				frame_end = nf_sum[i+1]
+				tcs = frExtractTimeCourses(results_dir, res_dir2, abf_dir, frameinterval, frame_start, frame_end, p)
+			genDeconv(res_dir, tcs['ratio'])
 
 def genDeconv(out_dir, ratio):
 	c = np.zeros((ratio.shape[0], ratio.shape[1]))
@@ -56,10 +61,10 @@ def genDeconv(out_dir, ratio):
 	savemat(os.path.join(out_dir, 'ratio_model.mat'), {'ratio_model': c}, do_compression=True)
 
 
-def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_start, frame_end, overwrite=True, updateRaw=True, adaptBaseLine=False, ringSubtract=True, maskOp='manual', maskAlign='aligned'):
+def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_start, frame_end, plane, overwrite=True, updateRaw=True, adaptBaseLine=False, ringSubtract=True, maskOp='manual', maskAlign='aligned'):
 	fnTimeCourses = os.path.join(results_dir, 'timecourses.mat')
 
-	reg_file = os.path.join(reg_dir, 'suite2p/plane0/data.bin')
+	reg_file = os.path.join(reg_dir, 'suite2p/plane{}/data.bin'.format(plane))
 
 	# use_bin = False
 	l = []
@@ -76,13 +81,13 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 	tcs = {}
 
 	if updateRaw:
-		ops = np.load(os.path.join(reg_dir, 'suite2p/plane0/ops.npy'), allow_pickle=True).item()
+		ops = np.load(os.path.join(reg_dir, 'suite2p/plane{}/ops.npy'.format(plane)), allow_pickle=True).item()
 		dims = (ops['Lx'], ops['Ly'])
 		print('Loading Masks')
 		if maskOp in ['manual', 'auto', 'active', 'masks_neuronsZoom']:
-			(maskNeurons, maskRings) = doLoadMasks(reg_dir, dims)
+			(maskNeurons, maskRings) = doLoadMasks(reg_dir, dims, plane)
 		elif maskOp in ['aligned', 'activeAligned']:
-			(tmpMask, maskRings) = doLoadMasks(reg_dir, dims)
+			(tmpMask, maskRings) = doLoadMasks(reg_dir, dims, plane)
 			maskNeurons = np.squeeze(tmpMask[:, :, 0])
 		savemat(os.path.join(results_dir, 'masks.mat'), {'maskNeurons': maskNeurons, 'maskRings': maskRings})
 		print('Done loading masks')
@@ -291,4 +296,4 @@ def stackGetTimeCourses(stack, mask, type='mean'):
 	return tc
 
 if __name__ == '__main__':
-	do_deconv('/media/storage/data/rui/results/EC004/2019_06_12/1_2_3', 0.5/19.066, [17000, 12000, 17000], [1, 2, 3])
+	do_deconv('/media/storage/data/aubrey/results/pchl03/2019_05_24/1', 0.5/19.066, [5250], [1], nplanes=16)
