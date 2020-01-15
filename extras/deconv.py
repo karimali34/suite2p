@@ -20,13 +20,13 @@ def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None, npla
 	for i in range(len(nframes)):
 		print('Running expt_dir {} ({} frames)'.format(expt_dirs[i], nframes[i]))
 		res_dir = os.path.abspath(os.path.join(results_dir, '..', str(expt_dirs[i])))
-		if not os.path.isdir(res_dir):
-			os.makedirs(res_dir)
 		for p in range(nplanes):
 			if nplanes > 1:
 				res_dir2 = os.path.join(res_dir, 'suite2p/plane{}'.format(p))
 			else:
 				res_dir2 = res_dir
+			if not os.path.isdir(res_dir2):
+				os.makedirs(res_dir2)
 			fnTimeCourses = os.path.join(res_dir2, 'timecourses.mat'.format(p))
 			if os.path.isfile(fnTimeCourses):
 				tmp = loadmat(fnTimeCourses)
@@ -36,7 +36,7 @@ def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None, npla
 				frame_start = nf_sum[i]
 				frame_end = nf_sum[i+1]
 				tcs = frExtractTimeCourses(results_dir, res_dir2, abf_dir, frameinterval, frame_start, frame_end, p)
-			genDeconv(res_dir, tcs['ratio'])
+			genDeconv(res_dir2, tcs['ratio'])
 
 def genDeconv(out_dir, ratio):
 	c = np.zeros((ratio.shape[0], ratio.shape[1]))
