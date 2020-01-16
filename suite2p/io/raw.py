@@ -99,8 +99,8 @@ def raw_to_binary(ops):
     do_registration = ops1[0]['do_registration']
     do_nonrigid = ops1[0]['nonrigid']
     for ops in ops1:
-        ops['Ly'] = im2write.shape[1]
-        ops['Lx'] = im2write.shape[2]
+        ops['Lx'] = im2write.shape[1]
+        ops['Ly'] = im2write.shape[2]
         if not do_registration:
             ops['yrange'] = np.array([0,ops['Ly']])
             ops['xrange'] = np.array([0,ops['Lx']])

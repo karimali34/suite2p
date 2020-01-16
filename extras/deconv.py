@@ -15,7 +15,7 @@ import time
 import skimage
 from abfLoad import abfLoad
 
-def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None, nplanes=1):
+def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None, nplanes=1, transpose=False):
 	nf_sum = np.cumsum(np.append([0], nframes))
 	for i in range(len(nframes)):
 		print('Running expt_dir {} ({} frames)'.format(expt_dirs[i], nframes[i]))
@@ -35,7 +35,7 @@ def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None, npla
 			else:
 				frame_start = nf_sum[i]
 				frame_end = nf_sum[i+1]
-				tcs = frExtractTimeCourses(results_dir, res_dir2, abf_dir, frameinterval, frame_start, frame_end, p)
+				tcs = frExtractTimeCourses(results_dir, res_dir2, abf_dir, frameinterval, frame_start, frame_end, p, transpose=transpose)
 			genDeconv(res_dir2, tcs['ratio'])
 
 def genDeconv(out_dir, ratio):
@@ -61,7 +61,7 @@ def genDeconv(out_dir, ratio):
 	savemat(os.path.join(out_dir, 'ratio_model.mat'), {'ratio_model': c}, do_compression=True)
 
 
-def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_start, frame_end, plane, overwrite=True, updateRaw=True, adaptBaseLine=False, ringSubtract=True, maskOp='manual', maskAlign='aligned'):
+def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_start, frame_end, plane, overwrite=True, updateRaw=True, adaptBaseLine=False, ringSubtract=True, maskOp='manual', maskAlign='aligned', transpose=False):
 	fnTimeCourses = os.path.join(results_dir, 'timecourses.mat')
 
 	reg_file = os.path.join(reg_dir, 'suite2p/plane{}/data.bin'.format(plane))
@@ -83,6 +83,8 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 	if updateRaw:
 		ops = np.load(os.path.join(reg_dir, 'suite2p/plane{}/ops.npy'.format(plane)), allow_pickle=True).item()
 		dims = (ops['Lx'], ops['Ly'])
+		if transpose:
+			dims = (ops['Ly'], ops['Lx'])
 		print('Loading Masks')
 		if maskOp in ['manual', 'auto', 'active', 'masks_neuronsZoom']:
 			(maskNeurons, maskRings) = doLoadMasks(reg_dir, dims, plane)
@@ -109,7 +111,8 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 
 		print('Loading reg file from {}'.format(reg_file))
 		reg_data = np.memmap(reg_file, dtype=np.int16, mode='r')
-		stack = np.reshape(reg_data, (-1, ops['Lx'], ops['Ly']))
+		#stack = np.reshape(reg_data, (-1, ops['Lx'], ops['Ly']))
+		stack = np.reshape(reg_data, (-1,) + dims)
 		stack_mean = np.mean(stack[frame_start:frame_end, :, :], axis=0)
 
 		tifffile.imwrite(os.path.join(results_dir, 'avgstack.tif'), stack_mean.astype(np.int16))
@@ -296,4 +299,4 @@ def stackGetTimeCourses(stack, mask, type='mean'):
 	return tc
 
 if __name__ == '__main__':
-	do_deconv('/media/storage/data/aubrey/results/pchl03/2019_05_24/1', 0.5/19.066, [5250], [1], nplanes=16)
+	do_deconv('/media/storage/data/aubrey/results/pchl03/2019_05_24/1', 0.5/19.066, [5250], [1], nplanes=16, transpose=True)
