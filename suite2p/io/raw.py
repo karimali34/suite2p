@@ -55,7 +55,6 @@ def raw_to_binary(ops):
         for i in ops['expts']:
             rawlist.append(os.path.join(ops['data_path'], str(i)))
     else:
-        print(ops['data_path'])
         rawlist = ops['data_path']
 
     nbatch = nplanes*nchannels*math.ceil(ops1[0]['batch_size']/(nplanes*nchannels))
