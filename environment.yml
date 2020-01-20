@@ -1,9 +1,7 @@
 name: suite2p
 dependencies:
-  - {{ compiler('c') }}
-  - {{ compiler('c++') }}
-  - gcc_linux-64 # this issue is isolated to Arch Linux... the version of gcc is so new and amazing on this rolling release that ld doesn't understand what cython is outputting...
-  - gxx_linux-64
+  - conda-forge::c-compiler
+  - conda-forge::cxx-compiler
   - python>=3.7
   - pip
   - mkl_fft=1.0.10
