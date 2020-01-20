@@ -1,6 +1,21 @@
 import time, os
 import numpy as np
 from . import bidiphase,utils,rigid,register
+from ..utils import get_frames
+
+def sampled_mean(ops):
+    nframes = ops['nframes']
+    nsamps = min(nframes, 1000)
+    ix = np.linspace(0, nframes, 1+nsamps).astype('int64')[:-1]
+    bin_file = ops['reg_file']
+    if ops['nchannels']>1:
+        if ops['functional_chan'] == ops['align_by_chan']:
+            bin_file = ops['reg_file']
+        else:
+            bin_file = ops['reg_file_chan2']
+    frames = get_frames(ops, ix, bin_file, badframes=True)
+    refImg = frames.mean(axis=0)
+    return refImg
 
 def pick_initial_reference(frames):
     """ computes the initial reference image
@@ -20,7 +35,6 @@ def pick_initial_reference(frames):
         initial reference image (Ly x Lx)
 
     """
-
     nimg,Ly,Lx = frames.shape
     frames = np.reshape(frames, (nimg,-1)).astype('float32')
     frames = frames - np.reshape(frames.mean(axis=1), (nimg, 1))
@@ -59,12 +73,15 @@ def iterative_alignment(ops, frames, refImg):
         final reference image (Ly x Lx)
 
     """
+    # do not reshift frames by bidiphase during alignment
+    ops['bidiphase'] = 0
     niter = 8
     nmax  = np.minimum(100, int(frames.shape[0]/2))
     for iter in range(0,niter):
         ops['refImg'] = refImg
         maskMul, maskOffset, cfRefImg = rigid.phasecorr_reference(refImg, ops)
-        freg, ymax, xmax, cmax, yxnr = register.compute_motion_and_shift(frames, [maskMul, maskOffset, cfRefImg], ops)
+        freg, ymax, xmax, cmax, yxnr = register.compute_motion_and_shift(frames,
+                                                    [maskMul, maskOffset, cfRefImg], ops)
         ymax = ymax.astype(np.float32)
         xmax = xmax.astype(np.float32)
         isort = np.argsort(-cmax)
@@ -79,8 +96,7 @@ def iterative_alignment(ops, frames, refImg):
         ymax, xmax = ymax+dy, xmax+dx
     return refImg
 
-
-def compute_reference_image(ops):
+def compute_reference_image(ops, bin_file):
     """ compute the reference image
 
     computes initial reference image using ops['nimg_init'] frames
@@ -91,6 +107,9 @@ def compute_reference_image(ops):
         requires 'nimg_init', 'nonrigid', 'smooth_sigma', 'bidiphase', '1Preg',
         'reg_file', (optional 'keep_movie_raw', 'raw_movie')
 
+    bin_file : str
+        location of binary file with data
+
     Returns
     -------
     refImg : int16
@@ -100,24 +119,29 @@ def compute_reference_image(ops):
 
     Ly = ops['Ly']
     Lx = ops['Lx']
-    nFrames = ops['nframes']
-    nFramesInit = np.minimum(ops['nimg_init'], nFrames)
-    frames = subsample_frames(ops, nFramesInit)
+    nframes = ops['nframes']
+    nsamps = np.minimum(ops['nimg_init'], nframes)
+    ix = np.linspace(0, nframes, 1+nsamps).astype('int64')[:-1]
+    frames = get_frames(ops, ix, bin_file)
+    #frames = subsample_frames(ops, nFramesInit)
     if ops['do_bidiphase'] and ops['bidiphase']==0:
-        ops['bidiphase'] = bidiphase.compute(frames)
-        print('NOTE: estimated bidiphase offset from data: %d pixels'%ops['bidiphase'])
-    if ops['bidiphase'] != 0:
-        bidiphase.shift(frames, ops['bidiphase'])
+        bidi = bidiphase.compute(frames)
+        print('NOTE: estimated bidiphase offset from data: %d pixels'%bidi)
+    else:
+        bidi = ops['bidiphase']
+    if bidi != 0:
+        bidiphase.shift(frames, bidi)
     refImg = pick_initial_reference(frames)
     refImg = iterative_alignment(ops, frames, refImg)
-    return refImg
+    return refImg, bidi
 
-def subsample_frames(ops, nsamps):
+def subsample_frames(ops, bin_file, nsamps):
     """ get nsamps frames from binary file for initial reference image
     Parameters
     ----------
     ops : dictionary
-        requires 'Ly', 'Lx', 'nframes', 'reg_file' (optional 'keep_movie_raw' and 'raw_file')
+        requires 'Ly', 'Lx', 'nframes'
+    bin_file : open binary file
     nsamps : int
         number of frames to return
     Returns
@@ -132,23 +156,6 @@ def subsample_frames(ops, nsamps):
     nbytesread = 2 * Ly * Lx
     istart = np.linspace(0, nFrames, 1+nsamps).astype('int64')
     #istart = np.arange(nFrames - nsamps, nFrames).astype('int64')
-
-    if 'keep_movie_raw' in ops and ops['keep_movie_raw'] and 'raw_file' in ops and os.path.isfile(ops['raw_file']):
-        if ops['nchannels']>1:
-            if ops['functional_chan'] == ops['align_by_chan']:
-                reg_file = open(ops['raw_file'], 'rb')
-            else:
-                reg_file = open(ops['raw_file_chan2'], 'rb')
-        else:
-            reg_file = open(ops['raw_file'], 'rb')
-    else:
-        if ops['nchannels']>1:
-            if ops['functional_chan'] == ops['align_by_chan']:
-                reg_file = open(ops['reg_file'], 'rb')
-            else:
-                reg_file = open(ops['reg_file_chan2'], 'rb')
-        else:
-            reg_file = open(ops['reg_file'], 'rb')
     for j in range(0,nsamps):
         reg_file.seek(nbytesread * istart[j], 0)
         buff = reg_file.read(nbytesread)

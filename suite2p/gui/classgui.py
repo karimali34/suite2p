@@ -81,7 +81,7 @@ def class_default(parent):
     )
     if dm == QtGui.QMessageBox.Yes:
         classfile = os.path.join(
-            os.path.abspath(os.path.dirname(__file__)),
+            os.path.abspath(os.path.dirname(__main__.__file__)),
             "classifiers/classifier_user.npy",
         )
         save_model(classfile, parent.model.stats, parent.model.iscell, parent.model.keys)
@@ -96,7 +96,7 @@ def reset_default(parent):
     )
     if dm == QtGui.QMessageBox.Yes:
         classfile = os.path.join(
-            os.path.abspath(os.path.dirname(__file__)),
+            os.path.abspath(os.path.dirname(__main__.__file__)),
             "classifiers/classifier_user.npy",
         )
         shutil.copy(parent.classorig, classfile)
@@ -104,6 +104,7 @@ def reset_default(parent):
 
 def load(parent, name):
     print('loading classifier ', name)
+    parent.classfile = name
     parent.model = classifier.Classifier(classfile=name)
     if parent.model.loaded:
         activate(parent, True)

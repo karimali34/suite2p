@@ -5,6 +5,7 @@ import os
 import time
 from .. import utils
 from . import masks,classgui,traces,views, graphics
+import scipy.io
 
 def make_masks_and_enable_buttons(parent):
     parent.checkBox.setChecked(True)
@@ -58,9 +59,13 @@ def make_masks_and_enable_buttons(parent):
     # make color arrays for various views
     masks.make_colors(parent)
 
-    parent.ichosen = int(0)
-    parent.imerge = [int(0)]
-    parent.iflip = int(0)
+    if parent.iscell.sum() > 0:
+        ich = np.nonzero(parent.iscell)[0][0]
+    else:
+        ich = 0
+    parent.ichosen = int(ich)
+    parent.imerge = [int(ich)]
+    parent.iflip = int(ich)
     parent.ichosen_stats()
     parent.comboBox.setCurrentIndex(2)
     # colorbar
@@ -75,12 +80,15 @@ def make_masks_and_enable_buttons(parent):
     parent.lcell0.setText("%d" % (parent.iscell.sum()))
     graphics.init_range(parent)
     traces.plot_trace(parent)
-    if 'aspect' in parent.ops:
-        parent.xyrat = parent.ops['aspect']
-    elif 'diameter' in parent.ops and (type(parent.ops["diameter"]) is not int) and (len(parent.ops["diameter"]) > 1):
+    parent.xyrat = 1.0
+    if (isinstance(parent.ops['diameter'], list) and
+        len(parent.ops['diameter'])>1 and
+        parent.ops['aspect']==1.0):
         parent.xyrat = parent.ops["diameter"][0] / parent.ops["diameter"][1]
     else:
-        parent.xyrat = 1.0
+        if 'aspect' in parent.ops:
+            parent.xyrat = parent.ops['aspect']
+
     parent.p1.setAspectLocked(lock=True, ratio=parent.xyrat)
     parent.p2.setAspectLocked(lock=True, ratio=parent.xyrat)
     #parent.p2.setXLink(parent.p1)
@@ -90,6 +98,10 @@ def make_masks_and_enable_buttons(parent):
     parent.show()
     # no classifier loaded
     classgui.activate(parent, False)
+
+def export_fig(parent):
+    parent.win.scene().contextMenuItem = parent.p1
+    parent.win.scene().showExportDialog()
 
 def enable_views_and_classifier(parent):
     for b in range(9):
@@ -290,6 +302,11 @@ def load_behavior(parent):
         parent.colorbtns.button(b).setStyleSheet(parent.styleUnpressed)
         masks.beh_masks(parent)
         traces.plot_trace(parent)
+        if hasattr(parent, 'VW'):
+            parent.VW.bloaded = parent.bloaded
+            parent.VW.beh = parent.beh
+            parent.VW.beh_time = parent.beh_time
+            parent.VW.plot_traces()
         parent.show()
     else:
         print("ERROR: this is not a 1D array with length of data")
@@ -316,7 +333,7 @@ def save_iscell(parent):
 def save_mat(parent):
     print('saving to mat')
     matpath = os.path.join(parent.basename,'Fall.mat')
-    io.savemat(matpath, {'stat': parent.stat,
+    scipy.io.savemat(matpath, {'stat': parent.stat,
                          'ops': parent.ops,
                          'F': parent.Fcell,
                          'Fneu': parent.Fneu,

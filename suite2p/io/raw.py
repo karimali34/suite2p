@@ -55,7 +55,8 @@ def raw_to_binary(ops):
         for i in ops['expts']:
             rawlist.append(os.path.join(ops['data_path'], str(i)))
     else:
-        rawlist = os.path.join(ops['data_path'])
+        print(ops['data_path'])
+        rawlist = ops['data_path']
 
     nbatch = nplanes*nchannels*math.ceil(ops1[0]['batch_size']/(nplanes*nchannels))
 
@@ -65,7 +66,7 @@ def raw_to_binary(ops):
         raw_fn = os.path.join(r, 'Image_0001_0001.raw')
         expt_file = os.path.join(r, 'Experiment.xml')
         if not os.path.isfile(expt_file):
-            raise(f'Experiment.xml not found for in {r}')
+            raise Exception(f'Experiment.xml not found for in {r}')
         e = xml.etree.ElementTree.parse(expt_file).getroot()
         streaming = e.find('Streaming')
         lsm = e.find('LSM')

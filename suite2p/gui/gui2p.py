@@ -9,7 +9,6 @@ from pyqtgraph import GraphicsScene
 from scipy.ndimage import gaussian_filter1d
 from scipy.interpolate import interp1d
 import warnings
-import __main__
 from . import menus, io, merge, views, buttons, classgui, traces, graphics, masks
 
 def resample_frames(y, x, xt):
@@ -27,8 +26,11 @@ class MainWindow(QtGui.QMainWindow):
 
         self.setGeometry(50, 50, 1500, 800)
         self.setWindowTitle("suite2p (run pipeline or load stat.npy)")
+        import suite2p
+        s2ppath = os.path.dirname(os.path.realpath(suite2p.__file__))
+
         icon_path = os.path.join(
-            os.path.dirname(os.path.realpath(__main__.__file__)), "logo/logo.png"
+            s2ppath, "logo","logo.png"
         )
         app_icon = QtGui.QIcon()
         app_icon.addFile(icon_path, QtCore.QSize(16, 16))
@@ -52,19 +54,19 @@ class MainWindow(QtGui.QMainWindow):
         self.ops_plot = []
         ### first time running, need to check for user files
         # check for classifier file
-        self.classfile = os.path.join(os.path.abspath(os.path.dirname(__main__.__file__)),
-            "classifiers/classifier_user.npy",
+        self.classfile = os.path.join(s2ppath,
+                                      "classifiers","classifier_user.npy",
         )
-        self.classorig = os.path.join(os.path.abspath(os.path.dirname(__main__.__file__)),
-            "classifiers/classifier.npy"
+        self.classorig = os.path.join(s2ppath,
+                                      "classifiers","classifier.npy"
         )
         if not os.path.isfile(self.classfile):
             shutil.copy(self.classorig, self.classfile)
         # check for ops file (for running suite2p)
-        self.opsorig = os.path.join(os.path.abspath(os.path.dirname(__main__.__file__)),
-                                          'ops/ops.npy')
-        self.opsfile = os.path.join(os.path.abspath(os.path.dirname(__main__.__file__)),
-                                          'ops/ops_user.npy')
+        self.opsorig = os.path.join(s2ppath,
+                                    'ops','ops.npy')
+        self.opsfile = os.path.join(s2ppath,
+                                          'ops','ops_user.npy')
         if not os.path.isfile(self.opsfile):
             shutil.copy(self.opsorig, self.opsfile)
 
@@ -104,15 +106,28 @@ class MainWindow(QtGui.QMainWindow):
         self.default_keys = model["keys"]
 
         # load initial file
+        #statfile = 'C:/Users/carse/OneDrive/Documents/suite2p/plane0/stat.npy'
         #statfile = 'D:/grive/cshl_suite2p/GT1/suite2p/plane0/stat.npy'
         #statfile = '/media/carsen/DATA1/TIFFS/auditory_cortex/suite2p/plane0/stat.npy'
         if statfile is not None:
             self.fname = statfile
             io.load_proc(self)
             #self.manual_label()
-
+        self.setAcceptDrops(True)
         self.show()
         self.win.show()
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        files = [u.toLocalFile() for u in event.mimeData().urls()]
+        print(files)
+        self.fname = files[0]
+        io.load_proc(self)
 
     def make_buttons(self):
         # ROI CHECKBOX
@@ -364,10 +379,6 @@ class MainWindow(QtGui.QMainWindow):
             self.zoom_to_cell()
         self.win.show()
         self.show()
-
-    def export_fig(self):
-        self.win.scene().contextMenuItem = self.p1
-        self.win.scene().showExportDialog()
 
     def mode_change(self, i):
         """
@@ -656,8 +667,9 @@ def run(statfile=None):
     # Always start by initializing Qt (only once per application)
     warnings.filterwarnings("ignore")
     app = QtGui.QApplication(sys.argv)
-    icon_path = os.path.join(
-        os.path.dirname(os.path.realpath(__main__.__file__)), "logo/logo.png"
+    import suite2p
+    s2ppath = os.path.dirname(os.path.realpath(suite2p.__file__))
+    icon_path = os.path.join(s2ppath, "logo","logo.png"
     )
     app_icon = QtGui.QIcon()
     app_icon.addFile(icon_path, QtCore.QSize(16, 16))

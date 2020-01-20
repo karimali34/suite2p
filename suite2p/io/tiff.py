@@ -183,6 +183,7 @@ def tiff_to_binary(ops):
             for j in range(0,nplanes):
                 if ik==0 and ix==0:
                     ops1[j]['nframes'] = 0
+                    ops1[j]['frames_per_file'] = np.zeros((len(fs),), dtype=int)
                     ops1[j]['meanImg'] = np.zeros((im.shape[1], im.shape[2]), np.float32)
                     if nchannels>1:
                         ops1[j]['meanImg_chan2'] = np.zeros((im.shape[1], im.shape[2]), np.float32)
@@ -195,6 +196,7 @@ def tiff_to_binary(ops):
 
                 reg_file[j].write(bytearray(im2write))
                 ops1[j]['nframes'] += im2write.shape[0]
+                ops1[j]['frames_per_file'][ik] += im2write.shape[0]
                 ops1[j]['frames_per_folder'][which_folder] += im2write.shape[0]
                 #print(ops1[j]['frames_per_folder'][which_folder])
                 if nchannels>1:
@@ -457,7 +459,7 @@ def ome_to_binary(ops):
 
         ops1[j]['meanImg'] += im
         ops1[j]['nframes'] += 1
-        ops1[j]['nframes_per_folder'] += 1
+        ops1[j]['frames_per_folder'][0] += 1
 
         reg_file[j].write(bytearray(im))
         ix+=1

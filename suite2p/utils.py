@@ -22,8 +22,8 @@ def boundary(ypix,xpix):
 def circle(med, r):
     """ returns pixels of circle with radius 1.25x radius of cell (r) """
     theta = np.linspace(0.0,2*np.pi,100)
-    x = r*1.35 * np.cos(theta) + med[0]
-    y = r*1.35 * np.sin(theta) + med[1]
+    x = r*1.25 * np.cos(theta) + med[0]
+    y = r*1.25 * np.sin(theta) + med[1]
     x = x.astype(np.int32)
     y = y.astype(np.int32)
     return x,y
@@ -106,7 +106,7 @@ def enhanced_mean_image(ops):
         ops['spatscale_pix'] = diameter[1]
         ops['aspect'] = diameter[0]/diameter[1]
 
-    diameter = 4*np.array([ops['spatscale_pix'] * ops['aspect'], ops['spatscale_pix']]) + 1
+    diameter = 4*np.ceil(np.array([ops['spatscale_pix'] * ops['aspect'], ops['spatscale_pix']])) + 1
     diameter = diameter.flatten().astype(np.int64)
     Imed = signal.medfilt2d(I, [diameter[0], diameter[1]])
     I = I - Imed
@@ -129,29 +129,33 @@ def sub2ind(array_shape, rows, cols):
     inds = rows * array_shape[1] + cols
     return inds
 
-def sample_frames(ops, ix, reg_file, crop=True):
-    """ get frames ix from reg_file
+def get_frames(ops, ix, bin_file, crop=False, badframes=False):
+    """ get frames ix from bin_file
         frames are cropped by ops['yrange'] and ops['xrange']
 
     Parameters
     ----------
     ops : dict
-        requires 'yrange', 'xrange', 'Ly', 'Lx'
+        requires 'Ly', 'Lx'
     ix : int, array
         frames to take
-    reg_file : str
+    bin_file : str
         location of binary file to read (frames x Ly x Lx)
     crop : bool
-        whether or not to crop by 'yrange' and 'xrange'
+        whether or not to crop by 'yrange' and 'xrange' - if True, needed in ops
 
     Returns
     -------
         mov : int16, array
             frames x Ly x Lx
     """
-    if 'badframes' in ops:
+    if badframes and 'badframes' in ops:
         bad_frames = ops['badframes']
-        ix = ix[bad_frames[ix]==0]
+        try:
+            ixx = ix[bad_frames[ix]==0].copy()
+            ix = ixx
+        except:
+            notbad=True
     Ly = ops['Ly']
     Lx = ops['Lx']
     nbytesread =  np.int64(Ly*Lx*2)
@@ -162,10 +166,10 @@ def sample_frames(ops, ix, reg_file, crop=True):
     else:
         mov = np.zeros((len(ix), Ly, Lx), np.int16)
     # load and bin data
-    with open(reg_file, 'rb') as reg_file:
+    with open(bin_file, 'rb') as bfile:
         for i in range(len(ix)):
-            reg_file.seek(nbytesread*ix[i], 0)
-            buff = reg_file.read(nbytesread)
+            bfile.seek(nbytesread*ix[i], 0)
+            buff = bfile.read(nbytesread)
             data = np.frombuffer(buff, dtype=np.int16, offset=0)
             data = np.reshape(data, (Ly, Lx))
             if crop:
