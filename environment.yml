@@ -19,7 +19,6 @@ dependencies:
   - pyqt
   - pip:
     - git+https://github.com/flatironinstitute/CaImAn
-    - PyQt5<5.12
     - pyqtgraph
     - natsort
     - scanimage-tiff-reader
@@ -34,4 +33,5 @@ dependencies:
     - pynwb
     - holoviews
     - psutil
-    - -e suite2p
+    - git+https://github.com/LelouchLamperougeVI/s2p-plugins.git
+    - -e .
