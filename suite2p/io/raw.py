@@ -63,6 +63,14 @@ def raw_to_binary(ops):
 
     for ir,r in enumerate(rawlist):
         raw_fn = os.path.join(r, 'Image_0001_0001.raw')
+
+        if not os.path.isfile(raw_fn):
+            print(f'Unable to find {raw_fn}, trying Image_001_001.raw.')
+            raw_fn = os.path.join(r, 'Image_001_001.raw')
+
+        if not os.path.isfile(raw_fn):
+            raise Exception(f'Unable to find RAW file {raw_fn}')
+        
         expt_file = os.path.join(r, 'Experiment.xml')
         if not os.path.isfile(expt_file):
             raise Exception(f'Experiment.xml not found for in {r}')
