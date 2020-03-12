@@ -82,9 +82,9 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 
 	if updateRaw:
 		ops = np.load(os.path.join(reg_dir, 'suite2p/plane{}/ops.npy'.format(plane)), allow_pickle=True).item()
-		dims = (ops['Lx'], ops['Ly'])
+		dims = (ops['Ly'], ops['Lx'])
 		if transpose:
-			dims = (ops['Ly'], ops['Lx'])
+			dims = (ops['Lx'], ops['Ly'])
 		print('Loading Masks')
 		if maskOp in ['manual', 'auto', 'active', 'masks_neuronsZoom']:
 			(maskNeurons, maskRings) = doLoadMasks(reg_dir, dims, plane)
@@ -168,6 +168,7 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 	return tcs
 
 def tcGetBaseline(x, ds=16):
+	print('tcGetBaseline shape: {}'.format(x.shape))
 	ncells = x.shape[1]
 	m = np.mean(x, axis=0)
 	xm = x - m
@@ -299,4 +300,4 @@ def stackGetTimeCourses(stack, mask, type='mean'):
 	return tc
 
 if __name__ == '__main__':
-	do_deconv('/media/storage/data/aubrey/results/pchl03/2019_05_24/1', 0.5/19.066, [5250], [1], nplanes=16, transpose=True)
+	do_deconv('/media/storage/data/Bailey/results/Bailey/2020_02_24/1', 0.5/19.066, [500], [1], nplanes=64)

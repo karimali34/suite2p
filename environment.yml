@@ -17,6 +17,7 @@ dependencies:
   - conda-forge::opencv
   - ipyparallel
   - pyqt
+  - conda-forge::shapely
   - pip:
     - git+https://github.com/flatironinstitute/CaImAn
     - pyqtgraph

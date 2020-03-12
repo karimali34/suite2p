@@ -43,7 +43,7 @@ for i in db:
             os.makedirs(results_dir)
 
     if 'abf_dir' in i:
-        abf_dir = [ os.path.join(i['abf_dir'], i['mouse_name'], i['date'] + "_" + str(x) + ".abf") for x in i['expts'] ]
+        abf_dir = [ os.path.join(i['abf_dir'], i['mouse_name'], i['date'] + "_" + "{:04d}".format(x) + ".abf") for x in i['expts'] ]
     else:
         abf_dir = None
     print(f'Running expt {i}')
@@ -75,12 +75,15 @@ for i in db:
         # else:
         #     raise ValueError(f'Problem loading {raw_file}')
 
+    for j in nframes:
+        print(j)
+        
     if run_mode == 'suite2p' or run_mode == 'all':
         from run_suite2p import run_suite2p
         ops = run_suite2p(i, results_dir, fr/num_planes, num_planes)
         ops = ops[0]
     if run_mode == 'deconv' or run_mode == 'all':
         from deconv import do_deconv
-        do_deconv(results_dir, 0.5/fr, nframes, i['expts'], abf_dir)
+        do_deconv(results_dir, 0.5/fr, nframes, i['expts'], abf_dir, nplanes=num_planes)
     #os.remove(ops['reg_file'])
     #os.remove(tif_dir)
