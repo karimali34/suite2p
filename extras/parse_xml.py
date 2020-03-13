@@ -14,10 +14,12 @@ def parse_xml(in_file):
     lsm = e.find('LSM')
     streaming = e.find('Streaming')
     zstage = e.find('ZStage')
+    timelapse = e.find('Timelapse')
     x = int(lsm.attrib['pixelX'])
     y = int(lsm.attrib['pixelY'])
     fr =  float(lsm.attrib['frameRate'])
-    num_frames = int(streaming.attrib['frames'])
+    #num_frames = int(streaming.attrib['frames'])
+    num_frames = int(timelapse.attrib['timepoints'])
     num_planes = int(zstage.attrib['steps']) + int(streaming.attrib['flybackFrames']) if int(streaming.attrib['zFastEnable']) == 1 else 1
     return (x, y, fr, num_frames, num_planes)
 

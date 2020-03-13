@@ -168,7 +168,6 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 	return tcs
 
 def tcGetBaseline(x, ds=16):
-	print('tcGetBaseline shape: {}'.format(x.shape))
 	ncells = x.shape[1]
 	m = np.mean(x, axis=0)
 	xm = x - m
