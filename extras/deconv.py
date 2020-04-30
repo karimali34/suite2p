@@ -15,7 +15,7 @@ import time
 import skimage
 from abfLoad import abfLoad
 
-def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None, nplanes=1, transpose=False):
+def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None, nplanes=1, transpose=False, force=False):
 	nf_sum = np.cumsum(np.append([0], nframes))
 	for i in range(len(nframes)):
 		print('Running expt_dir {} ({} frames)'.format(expt_dirs[i], nframes[i]))
@@ -28,7 +28,7 @@ def do_deconv(results_dir, frameinterval, nframes, expt_dirs, abf_dir=None, npla
 			if not os.path.isdir(res_dir2):
 				os.makedirs(res_dir2)
 			fnTimeCourses = os.path.join(res_dir2, 'timecourses.mat'.format(p))
-			if os.path.isfile(fnTimeCourses):
+			if os.path.isfile(fnTimeCourses) and not force:
 				tmp = loadmat(fnTimeCourses)
 				tcs = {}
 				tcs['ratio'] = tmp['tcs']['ratio'][0][0]
@@ -117,6 +117,11 @@ def frExtractTimeCourses(reg_dir, results_dir, abf_dir, frameinterval, frame_sta
 
 		tifffile.imwrite(os.path.join(results_dir, 'avgstack.tif'), stack_mean.astype(np.int16))
 		savemat(os.path.join(results_dir, 'avgstack.mat'), {'avg_stack': stack_mean.astype(np.float32)})
+
+		stack_max = np.max(stack[frame_start:frame_end, :,  :], axis=0)
+
+		tifffile.imwrite(os.path.join(results_dir, 'maxstack.tif'), stack_max.astype(np.int16))
+		savemat(os.path.join(results_dir, 'maxstack.mat'), {'max_stack': stack_max.astype(np.float32)})
 		# for i in filens:
 		# 	tmp_numframes = sizetiff([l[i]])
 		# 	stack[(i*tmp_numframes):((i+1)*tmp_numframes), :, :] = tiffile.imread(l[i])
@@ -299,4 +304,4 @@ def stackGetTimeCourses(stack, mask, type='mean'):
 	return tc
 
 if __name__ == '__main__':
-	do_deconv('/media/storage/data/Bailey/results/Bailey/2020_02_24/1', 0.5/19.066, [500], [1], nplanes=64)
+	do_deconv('/media/storage/data/Bailey/results/Bailey/2020_02_24/1', 0.5/19.066, [500], [1], nplanes=64, force=True)
